@@ -1,6 +1,9 @@
 [project]
-name = 'gptman'
+name = "gptman"
 version = "0.1"
+dependencies = [
+  "openai"
+]
 
 [project.scripts]
 gptman = "gptman.main:main"
