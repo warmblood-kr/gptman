@@ -33,6 +33,7 @@ pip install gptman
    ---
    id: assist_id_1234
    name: very-nice-assistant
+   model: gpt-4o-mini
    ---
    This is a prompt.
    ```
