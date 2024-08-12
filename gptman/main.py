@@ -23,7 +23,7 @@ def push_prompt(path=None):
         'api_key': settings['openai']['api_key'],
         **data
     }
-    print(f'update {path} ---> {data['name']} ({data['id']})')
+    print(f"update {path} ---> {data['name']} ({data['id']})")
     update_instruction(**kwargs)
 
 
