@@ -36,18 +36,15 @@ def read_prompt_file(path):
 
 def parse_markdown_with_preamble(text):
     lines = text.split('\n')
-    idx = 0
-    assert lines[idx] == '---'
+    assert lines[0].startswith('---')
     data = {}
 
-    while True:
-        idx += 1
-
-        if lines[idx] == '---':
+    for idx, line in enumerate(lines[1:], 1):
+        if line.startswith('---'):
             data['instructions'] = '\n'.join(lines[idx+1:])
             return data
 
-        k, v = parse_preamble_data(lines[idx])
+        k, v = parse_preamble_data(line)
         data[k] = v
 
 
