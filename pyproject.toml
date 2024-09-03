@@ -6,4 +6,4 @@ dependencies = [
 ]
 
 [project.scripts]
-gptman = "gptman.main:main"
+gptman = "gptman.cli:main"

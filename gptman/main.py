@@ -1,22 +1,9 @@
 import tomllib
-import argparse
-import os
 
 from openai import OpenAI
 
 
-def push(args):
-    path = args.path or [filename for filename in os.listdir('.')\
-                         if filename.endswith('.md')]
-
-    if isinstance(path, list):
-        for _path in path:
-            push_prompt(_path)
-    else:
-        push_prompt(path)
-
-
-def push_prompt(path=None):
+def push_prompt(path):
     settings = read_settings()
     data = read_prompt_file(path)
     kwargs = {
@@ -41,7 +28,6 @@ def update_instruction(api_key, **kwargs):
 def read_prompt_file(path):
     with open(path) as fin:
         body = fin.read()
-
         return parse_markdown_with_preamble(body)
 
 
@@ -65,19 +51,3 @@ def parse_markdown_with_preamble(text):
 def parse_preamble_data(line):
     k, v = line.split(':', 1)
     return k, v.strip()
-
-
-def main():
-    argparser = argparse.ArgumentParser()
-    subparsers = argparser.add_subparsers()
-    push_parser = subparsers.add_parser('push')
-    push_parser.add_argument('path', nargs='?')
-    push_parser.set_defaults(func=push)
-
-    args = argparser.parse_args()
-    args.func(args)
-
-
-if __name__ == '__main__':
-    main()
-
