@@ -3,15 +3,19 @@ import tomllib
 from openai import OpenAI
 
 
+def get_client(settings=None):
+    settings = settings or read_settings()
+    api_key = settings['openai']['api_key']
+    return OpenAI(api_key=api_key)
+
+
 def push_prompt(path):
     settings = read_settings()
+    client = get_client(settings)
+
     data = read_prompt_file(path)
-    kwargs = {
-        'api_key': settings['openai']['api_key'],
-        **data
-    }
     print(f"update {path} ---> {data['name']} ({data['id']})")
-    update_instruction(**kwargs)
+    return update_instruction(client, **data)
 
 
 def read_settings():
@@ -19,8 +23,7 @@ def read_settings():
         return tomllib.load(f)
 
 
-def update_instruction(api_key, **kwargs):
-    client = OpenAI(api_key=api_key)
+def update_instruction(client, **kwargs):
     id = kwargs.pop('id')
     return client.beta.assistants.update(id, **kwargs)
 
