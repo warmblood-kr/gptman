@@ -1,6 +1,7 @@
 import tomllib
 
 from openai import OpenAI
+from gptman.exceptions import PreambleNotFound
 
 
 def get_client(settings=None):
@@ -36,7 +37,9 @@ def read_prompt_file(path):
 
 def parse_markdown_with_preamble(text):
     lines = text.split('\n')
-    assert lines[0].startswith('---')
+    if not lines[0].startswith('---'):
+        raise PreambleNotFound()
+
     data = {}
 
     for idx, line in enumerate(lines[1:], 1):
@@ -46,6 +49,8 @@ def parse_markdown_with_preamble(text):
 
         k, v = parse_preamble_data(line)
         data[k] = v
+
+    raise PreambleNotFound()
 
 
 def parse_preamble_data(line):
