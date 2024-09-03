@@ -19,6 +19,6 @@ jobs:
           source venv/bin/activate
 
       - run: |
-          pip install pytest pytest-cov
+          pip install openai pytest pytest-cov
 
       - run: make test
