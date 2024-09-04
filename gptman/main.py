@@ -10,23 +10,17 @@ def get_client(settings=None):
     return OpenAI(api_key=api_key)
 
 
-def push_prompt(path):
-    settings = read_settings()
-    client = get_client(settings)
-
-    data = read_prompt_file(path)
-    print(f"update {path} ---> {data['name']} ({data['id']})")
-    return update_instruction(client, **data)
-
-
 def read_settings():
     with open("gptman.toml", "rb") as f:
         return tomllib.load(f)
 
 
-def update_instruction(client, **kwargs):
-    id = kwargs.pop('id')
-    return client.beta.assistants.update(id, **kwargs)
+def update_instruction(client, asst_id, **kwargs):
+    return client.beta.assistants.update(asst_id, **kwargs)
+
+
+def run_shell(client, asst_id):
+    print(asst_id)
 
 
 def read_prompt_file(path):
