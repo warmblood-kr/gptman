@@ -1,5 +1,7 @@
-from gptman.main import read_prompt_file
-from gptman.main import parse_markdown_with_preamble
+from gptman.prompt import (
+    read_prompt_file,
+    parse_markdown_with_preamble,
+)
 
 
 def test_read_prompt_file():
