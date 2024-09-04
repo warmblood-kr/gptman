@@ -17,7 +17,7 @@ def run_shell(client: OpenAI, asst_id: str):
     thread = client.beta.threads.create()
 
     while True:
-        content = input(f'{asst_id} >')
+        content = input(f'{asst_id} > ')
         if content == 'quit':
             return
 
@@ -47,6 +47,6 @@ def run_assistant(client, asst_id, thread):
 
 def get_generated_content(client, thread):
     messages = client.beta.threads.messages.list(thread_id=thread.id)
-    message = messages.json()['data'][0]
+    message = messages.data[0]
     generated_content = message['content'][0]['text']['value']
     return generated_content

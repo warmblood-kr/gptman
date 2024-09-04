@@ -4,10 +4,10 @@ import pathlib
 
 from gptman.main import (
     get_client,
-    read_prompt_file,
     run_shell,
     update_instruction,
 )
+from gptman.prompt import read_prompt_file
 
 
 def push(args):
@@ -34,7 +34,9 @@ def push(args):
 
 def shell(args):
     asst_id = args.id or read_prompt_file(args.path)['id']
-    run_shell(asst_id)
+
+    client = get_client()
+    run_shell(client, asst_id)
 
 
 def main():
