@@ -1,4 +1,5 @@
 import time
+import json
 from openai import OpenAI
 from gptman.prompt import read_settings
 
@@ -17,9 +18,12 @@ def run_shell(client: OpenAI, asst_id: str):
     thread = client.beta.threads.create()
 
     while True:
-        content = input(f'{asst_id} > ')
-        if content == 'quit':
+        content = input(f'[{asst_id}] User > ')
+        if content in ['quit', 'exit']:
             return
+
+        if not content:
+            continue
 
         client.beta.threads.messages.create(
             thread_id=thread.id,
@@ -28,17 +32,17 @@ def run_shell(client: OpenAI, asst_id: str):
         )
 
         generated_message = run_assistant(client, asst_id, thread)
-        print(generated_message)
+        print(f'[{asst_id}] GPT >', generated_message)
 
 
 def run_assistant(client, asst_id, thread):
-    run = client.beta.threads.runs.create_and_poll(
+    run_obj = client.beta.threads.runs.create_and_poll(
         thread_id=thread.id,
         assistant_id=asst_id,
     )
 
     while True:
-        if run.status == 'completed':
+        if run_obj.status == 'completed':
             generated_content = get_generated_content(client, thread)
             return generated_content
 
@@ -48,5 +52,11 @@ def run_assistant(client, asst_id, thread):
 def get_generated_content(client, thread):
     messages = client.beta.threads.messages.list(thread_id=thread.id)
     message = messages.data[0]
-    generated_content = message['content'][0]['text']['value']
-    return generated_content
+    value = message.content[0].text.value
+
+    try:
+        json_value = json.loads(value)
+        generated_content = json_value['values'] or json_value['error']
+        return generated_content
+    except (json.JSONDecodeError, KeyError):
+        return value
