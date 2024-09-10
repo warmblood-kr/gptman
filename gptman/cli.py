@@ -50,17 +50,20 @@ def main():
     argparser = argparse.ArgumentParser()
     subparsers = argparser.add_subparsers(required=True)
 
-    push_parser = subparsers.add_parser('push')
+    assistant_parser = subparsers.add_parser('assistant')
+    assistant_subparsers = assistant_parser.add_subparsers(required=True)
+
+    push_parser = assistant_subparsers.add_parser('push')
     push_parser.add_argument('path', nargs='?')
     push_parser.set_defaults(func=push)
 
-    shell_parser = subparsers.add_parser('shell')
+    shell_parser = assistant_subparsers.add_parser('shell')
     shell_parser.set_defaults(func=shell)
     group = shell_parser.add_mutually_exclusive_group(required=True)
     group.add_argument('path', nargs='?', type=pathlib.Path)
     group.add_argument('--id')
 
-    list_parser = subparsers.add_parser('list')
+    list_parser = assistant_subparsers.add_parser('list')
     list_parser.set_defaults(func=list_asst)
 
     args = argparser.parse_args()
