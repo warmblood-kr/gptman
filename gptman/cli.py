@@ -6,6 +6,7 @@ from gptman.main import (
     get_client,
     run_shell,
     update_instruction,
+    list_assistants,
 )
 from gptman.prompt import read_prompt_file
 
@@ -39,6 +40,12 @@ def shell(args):
     run_shell(client, asst_id)
 
 
+def list_asst(args):
+    client = get_client()
+    response = list_assistants(client)
+    print(response)
+
+
 def main():
     argparser = argparse.ArgumentParser()
     subparsers = argparser.add_subparsers(required=True)
@@ -52,6 +59,9 @@ def main():
     group = shell_parser.add_mutually_exclusive_group(required=True)
     group.add_argument('path', nargs='?', type=pathlib.Path)
     group.add_argument('--id')
+
+    list_parser = subparsers.add_parser('list')
+    list_parser.set_defaults(func=list_asst)
 
     args = argparser.parse_args()
     args.func(args)

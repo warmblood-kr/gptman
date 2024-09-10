@@ -33,6 +33,10 @@ def update_instruction(client, asst_id: str, **kwargs):
     return client.beta.assistants.update(asst_id, **kwargs)
 
 
+def list_assistants(client):
+    return client.beta.assistants.list()
+
+
 @contextmanager
 def with_history():
     histfile = os.path.join(os.path.expanduser('~'), '.gptman_history')
