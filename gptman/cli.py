@@ -43,7 +43,8 @@ def shell(args):
 def list_asst(args):
     client = get_client()
     response = list_assistants(client)
-    print(response)
+    for asst_id, asst_name in response:
+        print(f'{asst_name} [{asst_id}]')
 
 
 def main():

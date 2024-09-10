@@ -33,7 +33,9 @@ def update_instruction(client: openai.OpenAI, asst_id: str, **kwargs):
 
 
 def list_assistants(client: openai.OpenAI):
-    return client.beta.assistants.list()
+    paginator = client.beta.assistants.list()
+    for assistant in paginator:
+        yield (assistant.id, assistant.name)
 
 
 def run_shell(client: openai.OpenAI, asst_id: str):
