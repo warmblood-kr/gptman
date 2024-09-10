@@ -1,18 +1,35 @@
 import time
 import os
+import openai
+from enum import Enum
 from contextlib import contextmanager
 
-from openai import OpenAI
 from gptman.prompt import read_settings
+
+
+class Backend(Enum):
+    openai = 'openai'
+    azure = 'azure'
 
 
 def get_client(settings=None):
     settings = settings or read_settings()
-    api_key = settings['openai']['api_key']
-    return OpenAI(api_key=api_key)
+
+    backend = Backend[settings.get('gptman', {}).get('backend', 'openai')]
+
+    kwargs = {'api_key': settings[backend.value]['api_key']}
+
+    if backend == Backend.openai:
+        client_class = openai.OpenAI
+    elif backend == Backend.azure:
+        client_class = openai.lib.azure.AzureOpenAI
+        kwargs['azure_endpoint'] = settings[backend.value]['azure_endpoint']
+        kwargs['api_version'] = settings[backend.value]['api_version']
+
+    return client_class(**kwargs)
 
 
-def update_instruction(client: OpenAI, asst_id: str, **kwargs):
+def update_instruction(client, asst_id: str, **kwargs):
     return client.beta.assistants.update(asst_id, **kwargs)
 
 
@@ -35,7 +52,7 @@ def with_history():
         pass
 
 
-def run_shell(client: OpenAI, asst_id: str):
+def run_shell(client, asst_id: str):
     with with_history():
         thread = client.beta.threads.create()
 
