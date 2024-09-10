@@ -1,6 +1,7 @@
 import argparse
 import os
 import pathlib
+import logging
 
 from gptman.main import (
     get_client,
@@ -49,6 +50,8 @@ def list_asst(args):
 
 def main():
     argparser = argparse.ArgumentParser()
+    argparser.add_argument('-v', '--verbose', required=False, action='store_true')
+
     subparsers = argparser.add_subparsers(required=True)
 
     assistant_parser = subparsers.add_parser('assistant')
@@ -68,6 +71,10 @@ def main():
     list_parser.set_defaults(func=list_asst)
 
     args = argparser.parse_args()
+
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+
     args.func(args)
 
 
