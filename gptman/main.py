@@ -29,11 +29,11 @@ def get_client(settings=None):
     return client_class(**kwargs)
 
 
-def update_instruction(client, asst_id: str, **kwargs):
+def update_instruction(client: openai.OpenAI, asst_id: str, **kwargs):
     return client.beta.assistants.update(asst_id, **kwargs)
 
 
-def list_assistants(client):
+def list_assistants(client: openai.OpenAI):
     return client.beta.assistants.list()
 
 
@@ -56,7 +56,7 @@ def with_history():
         pass
 
 
-def run_shell(client, asst_id: str):
+def run_shell(client: openai.OpenAI, asst_id: str):
     with with_history():
         thread = client.beta.threads.create()
 
@@ -78,7 +78,7 @@ def run_shell(client, asst_id: str):
             print(f'[{asst_id}] GPT>', generated_message)
 
 
-def run_assistant(client, asst_id, thread):
+def run_assistant(client: openai.OpenAI, asst_id, thread):
     print('.', end='', flush=True)
     run_obj = client.beta.threads.runs.create_and_poll(
         thread_id=thread.id,
@@ -95,7 +95,7 @@ def run_assistant(client, asst_id, thread):
         print('.', end='', flush=True)
 
 
-def get_generated_content(client, thread):
+def get_generated_content(client: openai.OpenAI, thread):
     messages = client.beta.threads.messages.list(thread_id=thread.id)
     message = messages.data[0]
     value = message.content[0].text.value
