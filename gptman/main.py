@@ -24,6 +24,8 @@ def get_client(settings=None):
         client_class = openai.lib.azure.AzureOpenAI
         kwargs['azure_endpoint'] = settings[backend.value]['azure_endpoint']
         kwargs['api_version'] = settings[backend.value]['api_version']
+        if 'azure_deployment' in settings[backend.value]:
+            kwargs['azure_deployment'] = settings[backend.value]['azure_deployment']
 
     return client_class(**kwargs)
 
