@@ -1,10 +1,9 @@
 import time
-import os
 import openai
 from enum import Enum
-from contextlib import contextmanager
 
 from gptman.prompt import read_settings
+from gptman.contextmanagers import with_history
 
 
 class Backend(Enum):
@@ -35,25 +34,6 @@ def update_instruction(client: openai.OpenAI, asst_id: str, **kwargs):
 
 def list_assistants(client: openai.OpenAI):
     return client.beta.assistants.list()
-
-
-@contextmanager
-def with_history():
-    histfile = os.path.join(os.path.expanduser('~'), '.gptman_history')
-    try:
-        import readline
-        readline.read_history_file(histfile)
-        readline.set_history_length(1000)
-    except (FileNotFoundError, ImportError):
-        pass
-
-    yield
-
-    try:
-        import readline
-        readline.write_history_file(histfile)
-    except (FileNotFoundError, ImportError):
-        pass
 
 
 def run_shell(client: openai.OpenAI, asst_id: str):
