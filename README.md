@@ -51,7 +51,7 @@ pip install gptman
 To upload your prompts to the OpenAI Assistant API, use the following command:
 
 ```bash
-$ gptman push
+$ gptman assistant push
 ```
 
 This command will look up all Markdown files in the current directory and update them accordingly.
@@ -67,7 +67,7 @@ update prompt1.md --> very-nice-assistant (assist_id_1234)
 If you wish to update a specific Markdown file, you can specify the filename as follows:
 
 ```bash
-$ gptman push prompt1.md
+$ gptman assistant push prompt1.md
 ```
 
 ## Contributing
