@@ -8,6 +8,7 @@ from gptman.main import (
     run_shell,
     update_instruction,
     list_assistants,
+    describe_assistant,
 )
 from gptman.prompt import read_prompt_file
 
@@ -48,6 +49,15 @@ def list_asst(args):
         print(f'{asst_name} [{asst_id}]')
 
 
+def describe(args):
+    asst_id = args.id or read_prompt_file(args.path)['id']
+
+    client = get_client()
+    response = describe_assistant(client, asst_id)
+    for asst_id, asst_name in response:
+        print(f'{asst_name} [{asst_id}]')
+
+
 def main():
     argparser = argparse.ArgumentParser()
     argparser.add_argument('-v', '--verbose', required=False, action='store_true')
@@ -69,6 +79,12 @@ def main():
 
     list_parser = assistant_subparsers.add_parser('list')
     list_parser.set_defaults(func=list_asst)
+
+    describe_parser = assistant_subparsers.add_parser('describe')
+    group = describe_parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('path', nargs='?', type=pathlib.Path)
+    group.add_argument('--id')
+    describe_parser.set_defaults(func=describe)
 
     args = argparser.parse_args()
 

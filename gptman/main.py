@@ -40,6 +40,10 @@ def list_assistants(client: openai.OpenAI):
         yield (assistant.id, assistant.name)
 
 
+def describe_assistant(client: openai.OpenAI, asst_id: str):
+    return client.beta.assistants.retrieve(assistant_id=asst_id)
+
+
 def run_shell(client: openai.OpenAI, asst_id: str):
     with with_history():
         thread = client.beta.threads.create()
