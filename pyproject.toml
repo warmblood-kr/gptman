@@ -1,9 +1,27 @@
 [project]
 name = "gptman"
-version = "0.1"
+readme = "README.md"
+keywords = ["chatgpt", "IaC", "ai", "openai"]
+license = {file = "LICENSE"}
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Build Tools",
+  "Programming Language :: Python :: 3",
+]
+dynamic = ["version"]
 dependencies = [
   "openai"
 ]
 
+[project.urls]
+Homepage = "https://github.com/warmblood-kr/gptman"
+Repository = "https://github.com/warmblood-kr/gptman.git"
+Issues = "https://github.com/warmblood-kr/gptman/issues"
+Changelog = "https://github.com/warmblood-kr/gptman"
+
 [project.scripts]
 gptman = "gptman.cli:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "gptman.__version__"}

@@ -1,0 +1,3 @@
+graft gptman
+
+global-exclude *.py[cod]
