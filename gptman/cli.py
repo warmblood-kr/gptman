@@ -7,8 +7,8 @@ from gptman.main import (
     get_client,
     update_instruction,
     list_assistants,
+    run_shell,
 )
-from gptman.chat_shell import run_shell
 from gptman.prompt import read_prompt_file
 
 

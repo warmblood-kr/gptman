@@ -1,8 +1,11 @@
 import time
+import sys
 import openai
 from enum import Enum
 
+from gptman.contextmanagers import with_history
 from gptman.prompt import read_settings
+from gptman.cmd import PrefixCmd
 
 
 class Backend(Enum):
@@ -56,8 +59,41 @@ def run_assistant(client: openai.OpenAI, asst_id, thread):
         print('.', end='', flush=True)
 
 
+def run_shell(client, asst_id: str):
+    with with_history():
+        try:
+            thread = client.beta.threads.create()
+            shell = AssistantShell()
+            shell.client = client
+            shell.thread = thread
+            shell.assistant_id = asst_id
+
+            sys.exit(shell.cmdloop())
+        except KeyboardInterrupt:
+            return
+
+
 def get_generated_content(client: openai.OpenAI, thread):
     messages = client.beta.threads.messages.list(thread_id=thread.id)
     message = messages.data[0]
     value = message.content[0].text.value
     return value
+
+
+class AssistantShell(PrefixCmd):
+    intro = 'Assistant shell'
+    prompt = 'Assistant> '
+
+    def default(self, line):
+        self.client.beta.threads.messages.create(
+            thread_id=self.thread.id,
+            role='user',
+            content=line,
+        )
+
+        generated_message = run_assistant(self.client, self.assistant_id, self.thread)
+        print(generated_message)
+
+    def do_quit(self, line):
+        'Quit shell'
+        return 1
