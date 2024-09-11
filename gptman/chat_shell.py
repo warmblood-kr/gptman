@@ -29,30 +29,28 @@ class Command:
     def execute(self, client, asst_id, thread, context, content):
         'execute method'
 
-    @classmethod
     @abc.abstractmethod
-    def match(cls, content):
+    def match(self, content):
         'match method'
 
     @classmethod
     def select_command(cls, content):
-        special_commands = [c for c in Command.__subclasses__() if c.special]
+        special_commands = [c() for c in Command.__subclasses__() if c.special]
 
-        for cls in special_commands:
-            if cls.match(content):
-                return cls(content)
+        for cmd in special_commands:
+            if cmd.match(content):
+                return cmd
 
-        normal_commands = [c for c in Command.__subclasses__() if not c.special]
-        for cls in normal_commands:
-            if cls.match(content):
-                return cls(content)
+        normal_commands = [c() for c in Command.__subclasses__() if not c.special]
+        for cmd in normal_commands:
+            if cmd.match(content):
+                return cmd
 
 
 class QuitCommand(Command):
     special = True
 
-    @classmethod
-    def match(cls, content):
+    def match(self, content):
         return content and content.strip() in ['quit', 'exit', 'q']
 
     def execute(self, client, asst_id, thread, context, content):
@@ -62,8 +60,7 @@ class QuitCommand(Command):
 class NullCommand(Command):
     special = True
 
-    @classmethod
-    def match(cls, content):
+    def match(self, content):
         return not content or content.strip() == ''
 
     def execute(self, client, asst_id, thread, context, content):
@@ -71,8 +68,7 @@ class NullCommand(Command):
 
 
 class AskCommand(Command):
-    @classmethod
-    def match(cls, content):
+    def match(self, content):
         return True
 
     def execute(self, client, asst_id, thread, context, content):
