@@ -3,7 +3,6 @@ import openai
 from enum import Enum
 
 from gptman.prompt import read_settings
-from gptman.contextmanagers import with_history
 
 
 class Backend(Enum):
@@ -38,28 +37,6 @@ def list_assistants(client: openai.OpenAI):
     paginator = client.beta.assistants.list()
     for assistant in paginator:
         yield (assistant.id, assistant.name)
-
-
-def run_shell(client: openai.OpenAI, asst_id: str):
-    with with_history():
-        thread = client.beta.threads.create()
-
-        while True:
-            content = input(f'[{asst_id}] User> ')
-            if content in ['quit', 'exit']:
-                return
-
-            if not content:
-                continue
-
-            client.beta.threads.messages.create(
-                thread_id=thread.id,
-                role='user',
-                content=content,
-            )
-
-            generated_message = run_assistant(client, asst_id, thread)
-            print(f'[{asst_id}] GPT>', generated_message)
 
 
 def run_assistant(client: openai.OpenAI, asst_id, thread):

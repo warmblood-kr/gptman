@@ -5,10 +5,10 @@ import logging
 
 from gptman.main import (
     get_client,
-    run_shell,
     update_instruction,
     list_assistants,
 )
+from gptman.chat_shell import run_shell
 from gptman.prompt import read_prompt_file
 
 
