@@ -20,14 +20,13 @@ class PrefixCmd(cmd.Cmd):
             else:
                 return None, None, line
         elif line[0] == self.command_prefix:
-            i, n = 1, len(line)
-            while i < n and line[i] in self.identchars: i = i+1
-            cmd, arg = line[1:i], line[i:].strip()
-            return cmd, arg, line
+            return self.parse_cmd_line(line, 1)
+        return None, None, line
 
-        i, n = 0, len(line)
+    def parse_cmd_line(self, line, prefix_length=0):
+        i, n = prefix_length, len(line)
         while i < n and line[i] in self.identchars: i = i+1
-        cmd, arg = line[:i], line[i:].strip()
+        cmd, arg = line[prefix_length:i], line[i:].strip()
         return cmd, arg, line
 
     def emptyline(self):
