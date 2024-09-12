@@ -2,6 +2,7 @@ import time
 import sys
 import openai
 
+from pathlib import Path
 from enum import Enum
 from typing import Optional
 
@@ -88,6 +89,26 @@ def get_generated_content(client: openai.OpenAI, thread):
     return value
 
 
+def send_message(client: openai.OpenAI, assistant_id, thread, content, **kwargs):
+    client.beta.threads.messages.create(
+        thread_id=thread.id,
+        role='user',
+        content=content,
+        **kwargs,
+    )
+
+    generated_message = run_assistant(client, assistant_id, thread)
+    return generated_message
+
+
+def attach_file(client: openai.OpenAI, path, purpose='assistants'):
+    with open(path, 'rb') as fin:
+        message_file = client.files.create(
+            file=fin, purpose='assistants'
+        )
+        return message_file
+
+
 class AssistantShell(PrefixCmd):
     intro = 'Assistant shell'
     prompt = 'Assistant> '
@@ -113,6 +134,23 @@ class AssistantShell(PrefixCmd):
         generated_message = run_assistant(self.client, self.assistant_id, self.thread)
         print(generated_message)
 
-    def do_quit(self, line):
+    def do_quit(self, arg):
         'Quit shell'
         return 1
+
+    def do_attach(self, arg):
+        '''Attach file.\n/attach <filepath>'''
+        if not arg:
+            print('Filename should be provided')
+            return
+
+        if not Path(arg).exists():
+            print(f'File {arg} is not exists')
+            return
+
+        message_file = attach_file(self.client, arg)
+        message = 'I uploaded a file contains some information',
+        kwargs = {
+            'attachments': [{'file_id': message_file.id, 'tools': [{'type': 'file_search'}]}]
+        }
+        send_message(self.client, self.assistant_id, self.thread, message, **kwargs)
