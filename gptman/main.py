@@ -1,7 +1,9 @@
 import time
 import sys
 import openai
+
 from enum import Enum
+from typing import Optional
 
 from gptman.contextmanagers import with_history
 from gptman.prompt import read_settings
@@ -59,14 +61,14 @@ def run_assistant(client: openai.OpenAI, asst_id, thread):
         print('.', end='', flush=True)
 
 
-def run_shell(client, asst_id: str):
+def run_shell(client: openai.OpenAI, asst_id: str):
     with with_history():
         try:
             thread = client.beta.threads.create()
             shell = AssistantShell()
             shell.client = client
-            shell.thread = thread
             shell.assistant_id = asst_id
+            shell.thread = thread
 
             sys.exit(shell.cmdloop())
         except KeyboardInterrupt:
@@ -83,6 +85,9 @@ def get_generated_content(client: openai.OpenAI, thread):
 class AssistantShell(PrefixCmd):
     intro = 'Assistant shell'
     prompt = 'Assistant> '
+    client: Optional[openai.OpenAI] = None
+    assistant_id: Optional[str] = None
+    thread: Optional[openai.resources.beta.threads.threads.Thread] = None
 
     def default(self, line):
         self.client.beta.threads.messages.create(
