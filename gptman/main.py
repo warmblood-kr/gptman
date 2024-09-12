@@ -77,8 +77,18 @@ def run_shell(client: openai.OpenAI, asst_id: str):
 
 def get_generated_content(client: openai.OpenAI, thread):
     messages = client.beta.threads.messages.list(thread_id=thread.id)
-    message = messages.data[0]
-    value = message.content[0].text.value
+    last_message = messages.data[0]
+
+    MAP = {
+        'ImageFileContentBlock': lambda v: v.image_file.file_id,
+        'ImageURLContentBlock': lambda v: v.image_url.url,
+        'TextContentBlock': lambda v: v.text.value,
+    }
+
+    value = '\n\n'.join([
+        MAP[type(content).__name__](content)
+        for content in last_message.content
+    ])
     return value
 
 
