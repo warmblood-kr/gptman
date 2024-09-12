@@ -29,3 +29,7 @@ class PrefixCmd(cmd.Cmd):
         while i < n and line[i] in self.identchars: i = i+1
         cmd, arg = line[:i], line[i:].strip()
         return cmd, arg, line
+
+    def emptyline(self):
+        'Do nothing'
+        return
