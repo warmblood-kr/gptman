@@ -65,11 +65,7 @@ def run_shell(client: openai.OpenAI, asst_id: str):
     with with_history():
         try:
             thread = client.beta.threads.create()
-            shell = AssistantShell()
-            shell.client = client
-            shell.assistant_id = asst_id
-            shell.thread = thread
-
+            shell = AssistantShell(client, asst_id, thread)
             sys.exit(shell.cmdloop())
         except KeyboardInterrupt:
             return
@@ -95,9 +91,17 @@ def get_generated_content(client: openai.OpenAI, thread):
 class AssistantShell(PrefixCmd):
     intro = 'Assistant shell'
     prompt = 'Assistant> '
-    client: Optional[openai.OpenAI] = None
-    assistant_id: Optional[str] = None
-    thread: Optional[openai.resources.beta.threads.threads.Thread] = None
+    client: Optional[openai.OpenAI]
+    assistant_id: Optional[str]
+    thread: Optional[openai.resources.beta.threads.threads.Thread]
+
+    def __init__(self, client: openai.OpenAI, assistant_id: str,
+                 thread: openai.resources.beta.threads.threads.Thread,
+                 **kwargs):
+        self.client = client
+        self.assistant_id = assistant_id
+        self.thread = thread
+        super().__init__(**kwargs)
 
     def default(self, line):
         self.client.beta.threads.messages.create(
