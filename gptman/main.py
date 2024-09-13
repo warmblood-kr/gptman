@@ -93,12 +93,11 @@ def get_generated_content(client: openai.OpenAI, thread):
     return value
 
 
-def send_message(client: openai.OpenAI, assistant_id, thread, content, **kwargs):
+def send_message(client: openai.OpenAI, assistant_id, thread, content):
     client.beta.threads.messages.create(
         thread_id=thread.id,
         role='user',
         content=content,
-        **kwargs,
     )
 
     generated_message = run_assistant(client, assistant_id, thread)
@@ -153,8 +152,10 @@ class AssistantShell(PrefixCmd):
             return
 
         message_file = attach_file(self.client, arg)
-        message = 'I uploaded a file contains some information',
-        kwargs = {
-            'attachments': [{'file_id': message_file.id, 'tools': [{'type': 'file_search'}]}]
-        }
-        send_message(self.client, self.assistant_id, self.thread, message, **kwargs)
+        print(f'File is uploaded: {message_file}')
+
+        # TODO: link file and thread/message
+
+        content = 'Here is a file you can refer.'
+        send_message(self.client, self.assistant_id, self.thread, content)
+        print('File is attached to the thread.')
