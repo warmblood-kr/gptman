@@ -27,11 +27,9 @@ def push(args):
         asst_id = data.pop('id')
         return update_instruction(client, asst_id, **data)
 
-    if isinstance(path, list):
-        for _path in path:
-            push_prompt(_path)
-    else:
-        push_prompt(path)
+    paths = path if isinstance(path, list) else [path]
+    results = [push_prompt(_path) for _path in paths]
+    return results
 
 
 def shell(args):
