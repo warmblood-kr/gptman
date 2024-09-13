@@ -36,6 +36,10 @@ def get_client(settings=None):
 
 
 def update_instruction(client: openai.OpenAI, asst_id: str, **kwargs):
+    tools = kwargs.pop('tools', None)
+    if tools:
+        kwargs['tools'] = [{'type': tool_type} for tool_type in tools.split(' ')]
+
     return client.beta.assistants.update(asst_id, **kwargs)
 
 
