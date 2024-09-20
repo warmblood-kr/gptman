@@ -16,21 +16,24 @@ class Backend(Enum):
     azure = 'azure'
 
 
-def get_client(settings=None):
+def get_client(settings=None, profile=None):
     settings = settings or read_settings()
 
-    backend = Backend[settings.get('gptman', {}).get('backend', 'openai')]
+    profile_settings = settings.get('profile', {}).get(profile, {}) if profile \
+        else settings.get('gptman', {})
 
-    kwargs = {'api_key': settings[backend.value]['api_key']}
+    backend = Backend[profile_settings.get('backend', 'openai')]
+
+    kwargs = {'api_key': profile_settings['api_key']}
 
     if backend == Backend.openai:
         client_class = openai.OpenAI
     elif backend == Backend.azure:
         client_class = openai.lib.azure.AzureOpenAI
-        kwargs['azure_endpoint'] = settings[backend.value]['azure_endpoint']
-        kwargs['api_version'] = settings[backend.value]['api_version']
-        if 'azure_deployment' in settings[backend.value]:
-            kwargs['azure_deployment'] = settings[backend.value]['azure_deployment']
+        kwargs['azure_endpoint'] = profile_settings['azure_endpoint']
+        kwargs['api_version'] = profile_settings['api_version']
+        if 'azure_deployment' in profile_settings:
+            kwargs['azure_deployment'] = profile_settings['azure_deployment']
 
     return client_class(**kwargs)
 

@@ -18,7 +18,7 @@ def push(args):
         if filename.endswith('.md')
     ]
 
-    client = get_client()
+    client = get_client(profile=args.profile)
 
     def push_prompt(path):
         data = read_prompt_file(path)
@@ -35,12 +35,12 @@ def push(args):
 def shell(args):
     asst_id = args.id or read_prompt_file(args.path)['id']
 
-    client = get_client()
+    client = get_client(profile=args.profile)
     run_shell(client, asst_id)
 
 
 def list_asst(args):
-    client = get_client()
+    client = get_client(profile=args.profile)
     response = list_assistants(client)
     for asst_id, asst_name in response:
         print(f'{asst_name} [{asst_id}]')
@@ -49,6 +49,7 @@ def list_asst(args):
 def main():
     argparser = argparse.ArgumentParser()
     argparser.add_argument('-v', '--verbose', required=False, action='store_true')
+    argparser.add_argument('--profile', required=False, action='store')
 
     subparsers = argparser.add_subparsers(required=True)
 
