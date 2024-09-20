@@ -1,11 +1,13 @@
 import time
 import sys
 import openai
+import datetime
 
 from pathlib import Path
 from enum import Enum
 from typing import Optional
 
+from gptman import exceptions as exc
 from gptman.contextmanagers import with_history
 from gptman.prompt import read_settings
 from gptman.prefixcmd import PrefixCmd
@@ -52,21 +54,24 @@ def list_assistants(client: openai.OpenAI):
         yield (assistant.id, assistant.name)
 
 
-def run_assistant(client: openai.OpenAI, asst_id, thread):
+def run_assistant(client: openai.OpenAI, asst_id, thread, timeout=60):
     print('.', end='', flush=True)
     run_obj = client.beta.threads.runs.create_and_poll(
         thread_id=thread.id,
         assistant_id=asst_id,
     )
 
-    while True:
+    interval = 1
+    for _ in range(int(timeout / interval)):
         if run_obj.status == 'completed':
             print('.', flush=True)
             generated_content = get_generated_content(client, thread)
             return generated_content
 
-        time.sleep(0.5)
+        time.sleep(interval)
         print('.', end='', flush=True)
+
+    raise exc.RequestTimeout(run_obj)
 
 
 def run_shell(client: openai.OpenAI, asst_id: str):
@@ -74,7 +79,7 @@ def run_shell(client: openai.OpenAI, asst_id: str):
         try:
             thread = client.beta.threads.create()
             shell = AssistantShell(client, asst_id, thread)
-            sys.exit(shell.cmdloop())
+            shell.cmdloop()
         except KeyboardInterrupt:
             return
 
@@ -96,12 +101,18 @@ def get_generated_content(client: openai.OpenAI, thread):
     return value
 
 
-def send_message(client: openai.OpenAI, assistant_id, thread, content):
-    client.beta.threads.messages.create(
-        thread_id=thread.id,
-        role='user',
-        content=content,
-    )
+def send_message(client: openai.OpenAI, assistant_id, thread, content, attachments=None, file_ids=None):
+    kwargs = {
+        'thread_id': thread.id,
+        'role': 'user',
+        'content': content,
+    }
+    if attachments:
+        kwargs['attachments'] = attachments
+
+    if file_ids:
+        kwargs['file_ids'] = file_ids
+    client.beta.threads.messages.create(**kwargs)
 
     generated_message = run_assistant(client, assistant_id, thread)
     return generated_message
@@ -110,9 +121,20 @@ def send_message(client: openai.OpenAI, assistant_id, thread, content):
 def attach_file(client: openai.OpenAI, path, purpose='assistants'):
     with open(path, 'rb') as fin:
         message_file = client.files.create(
-            file=fin, purpose='assistants'
+            file=fin, purpose=purpose
         )
         return message_file
+
+
+def delete_file(client: openai.OpenAI, file_id):
+    return client.files.delete(file_id)
+
+
+def list_files(client: openai.OpenAI):
+    return client.files.list()
+
+
+SUPPORTED_FILES = ['.c', '.cpp', '.cs', '.css', '.doc', '.docx', '.html', '.java', '.js', '.json', '.md', '.pdf', '.php', '.pptx', '.py', '.rb', '.sh', '.tex', '.ts', '.txt']
 
 
 class AssistantShell(PrefixCmd):
@@ -144,21 +166,78 @@ class AssistantShell(PrefixCmd):
         'Quit shell'
         return 1
 
-    def do_attach(self, arg):
-        '''Attach file.\n/attach <filepath>'''
+    def do_image(self, arg):
+        '''Upload an image file.\n/image <filepath>'''
         if not arg:
             print('Filename should be provided')
             return
 
-        if not Path(arg).exists():
+        path = Path(arg)
+
+        if not path.exists():
             print(f'File {arg} is not exists')
             return
 
+        if path.suffix not in ['.png']:
+            print(f'{path.suffix} file is not supported')
+            return
+
+        message_file = attach_file(self.client, arg, purpose='assistants')
+        print(f'Image is uploaded: {message_file}')
+
+        content = 'Here is a file you can refer.'
+        kwargs = {}
+        kwargs['attachments'] = [
+            {'file_id': message_file.id, 'tools': [{'type': 'file_search'}]},
+        ]
+        send_message(self.client, self.assistant_id, self.thread, content, **kwargs)
+        print('File is attached to the thread.')
+
+    def do_file(self, arg):
+        '''Upload a file.\n/file <filepath>'''
+
+        if arg.strip() == 'list':
+            self.sub_do_file_list()
+
+        if arg.startswith('delete'):
+            file_id = arg.split(' ', 1)
+            self.sub_do_file_delete(file_id)
+
+        self.sub_do_file_upload(arg)
+
+    def sub_do_file_list(self):
+        for file_obj in list_files(self.client):
+            created_at = datetime.datetime.fromtimestamp(file_obj.created_at)
+            print(f'{file_obj.filename} [{file_obj.id}, {created_at}]')
+
+    def sub_do_file_delete(self, file_id):
+        print(delete_file(self.client, file_id))
+
+    def sub_do_file_upload(self, arg):
+        if not arg:
+            print('Filename should be provided')
+            return
+
+        path = Path(arg)
+
+        if not path.exists():
+            print(f'File {arg} is not exists')
+            return
+
+        if path.suffix not in SUPPORTED_FILES:
+            print(f'{path.suffix} file is not supported')
+            return
+
         message_file = attach_file(self.client, arg)
-        print(f'File is uploaded: {message_file}')
+        print(f'File is uploaded: {message_file.filename} ({message_file.id})')
 
         # TODO: link file and thread/message
 
         content = 'Here is a file you can refer.'
-        send_message(self.client, self.assistant_id, self.thread, content)
+        kwargs = {}
+        kwargs['attachments'] = [
+            {'file_id': message_file.id, 'tools': [{'type': 'file_search'}]},
+        ]
+
+        send_message(self.client, self.assistant_id, self.thread, content, **kwargs)
         print('File is attached to the thread.')
