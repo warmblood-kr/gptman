@@ -8,7 +8,7 @@ from typing import Optional
 
 from gptman.contextmanagers import with_history
 from gptman.prompt import read_settings
-from gptman.cmd import PrefixCmd
+from gptman.prefixcmd import PrefixCmd
 
 
 class Backend(Enum):
