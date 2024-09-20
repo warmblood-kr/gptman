@@ -1,10 +1,20 @@
+import os
 import tomllib
 from gptman.exceptions import PreambleNotFound
 
 
 def read_settings():
-    with open("gptman.toml", "rb") as f:
-        return tomllib.load(f)
+    settings_path_candidates = [
+        'gptman.toml',
+        os.path.expanduser('~/.gptman.toml')
+    ]
+
+    for path in settings_path_candidates:
+        if not os.path.isfile(path):
+            continue
+
+        with open(path, "rb") as f:
+            return tomllib.load(f)
 
 
 def read_prompt_file(path):
