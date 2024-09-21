@@ -3,8 +3,8 @@ import tomllib
 from gptman.exceptions import PreambleNotFound
 
 
-def read_settings():
-    settings_path_candidates = [
+def read_settings(candidates=None):
+    settings_path_candidates = candidates or [
         'gptman.toml',
         os.path.expanduser('~/.gptman.toml')
     ]
@@ -35,12 +35,16 @@ def parse_markdown_with_preamble(text):
             data['instructions'] = '\n'.join(lines[idx+1:])
             return data
 
-        k, v = parse_preamble_data(line)
-        data[k] = v
+        entry = parse_preamble_data(line)
+        if entry:
+            k, v = entry
+            data[k] = v
 
     raise PreambleNotFound()
 
 
 def parse_preamble_data(line):
+    if not line:
+        return
     k, v = line.split(':', 1)
     return k, v.strip()
