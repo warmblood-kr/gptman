@@ -1,4 +1,4 @@
-from gptman.cmd import PrefixCmd
+from gptman.prefixcmd import PrefixCmd
 
 
 def test_parse_cmd_line():
