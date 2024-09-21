@@ -3,8 +3,8 @@ from contextlib import contextmanager
 
 
 @contextmanager
-def with_history():
-    histfile = os.path.join(os.path.expanduser('~'), '.gptman_history')
+def with_history(filename=None, write_history=False):  # pragma: no cover
+    histfile = filename or os.path.join(os.path.expanduser('~'), '.gptman_history')
     try:
         import readline
         readline.read_history_file(histfile)
@@ -16,6 +16,7 @@ def with_history():
 
     try:
         import readline
-        readline.write_history_file(histfile)
+        if write_history:
+            readline.write_history_file(histfile)
     except (FileNotFoundError, ImportError):
         pass
