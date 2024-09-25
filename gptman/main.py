@@ -141,7 +141,14 @@ def list_files(client: openai.OpenAI):
     return client.files.list()
 
 
-SUPPORTED_FILES = ['.c', '.cpp', '.cs', '.css', '.doc', '.docx', '.html', '.java', '.js', '.json', '.md', '.pdf', '.php', '.pptx', '.py', '.rb', '.sh', '.tex', '.ts', '.txt']
+SUPPORTED_FILES = [
+    '.c', '.cpp', '.cs', '.css',
+    '.doc', '.docx', '.html',
+    '.java', '.js', '.json',
+    '.md',
+    '.pdf', '.php', '.pptx', '.py',
+    '.rb', '.sh', '.tex', '.ts', '.txt'
+]
 
 
 class AssistantShell(PrefixCmd):

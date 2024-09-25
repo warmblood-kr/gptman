@@ -7,3 +7,8 @@ dependencies = [
 
 [project.scripts]
 gptman = "gptman.cli:main"
+
+[tool.coverage.run]
+omit = [
+  "gptman/cli.py"
+]
