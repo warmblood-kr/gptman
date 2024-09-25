@@ -19,6 +19,6 @@ jobs:
           source venv/bin/activate
 
       - run: |
-          pip install openai pytest pytest-cov
+          pip install openai pytest pytest-cov "coverage[toml]"
 
       - run: make test

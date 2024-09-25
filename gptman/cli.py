@@ -5,10 +5,10 @@ import logging
 
 from gptman.main import (
     get_client,
-    run_shell,
     update_instruction,
     list_assistants,
     describe_assistant,
+    run_shell,
 )
 from gptman.prompt import read_prompt_file
 
@@ -19,7 +19,7 @@ def push(args):
         if filename.endswith('.md')
     ]
 
-    client = get_client()
+    client = get_client(profile=args.profile)
 
     def push_prompt(path):
         data = read_prompt_file(path)
@@ -28,22 +28,20 @@ def push(args):
         asst_id = data.pop('id')
         return update_instruction(client, asst_id, **data)
 
-    if isinstance(path, list):
-        for _path in path:
-            push_prompt(_path)
-    else:
-        push_prompt(path)
+    paths = path if isinstance(path, list) else [path]
+    results = [push_prompt(_path) for _path in paths]
+    return results
 
 
 def shell(args):
     asst_id = args.id or read_prompt_file(args.path)['id']
 
-    client = get_client()
+    client = get_client(profile=args.profile)
     run_shell(client, asst_id)
 
 
 def list_asst(args):
-    client = get_client()
+    client = get_client(profile=args.profile)
     response = list_assistants(client)
     for asst_id, asst_name in response:
         print(f'{asst_name} [{asst_id}]')
@@ -61,6 +59,7 @@ def describe(args):
 def main():
     argparser = argparse.ArgumentParser()
     argparser.add_argument('-v', '--verbose', required=False, action='store_true')
+    argparser.add_argument('--profile', required=False, action='store')
 
     subparsers = argparser.add_subparsers(required=True)
 

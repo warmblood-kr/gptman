@@ -25,3 +25,8 @@ gptman = "gptman.cli:main"
 
 [tool.setuptools.dynamic]
 version = {attr = "gptman.__version__"}
+
+[tool.coverage.run]
+omit = [
+  "gptman/cli.py"
+]
