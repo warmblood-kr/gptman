@@ -1,7 +1,7 @@
 import time
-import sys
 import openai
 import datetime
+import logging
 
 from pathlib import Path
 from enum import Enum
@@ -11,6 +11,8 @@ from gptman import exceptions as exc
 from gptman.contextmanagers import with_history
 from gptman.prompt import read_settings
 from gptman.prefixcmd import PrefixCmd
+
+logger = logging.getLogger('gptman')
 
 
 class Backend(Enum):
@@ -63,9 +65,11 @@ def run_assistant(client: openai.OpenAI, asst_id, thread, timeout=60):
 
     interval = 1
     for _ in range(int(timeout / interval)):
+        logger.debug(run_obj)
         if run_obj.status == 'completed':
             print('.', flush=True)
             generated_content = get_generated_content(client, thread)
+            logger.debug(generated_content)
             return generated_content
 
         time.sleep(interval)
@@ -112,7 +116,9 @@ def send_message(client: openai.OpenAI, assistant_id, thread, content, attachmen
 
     if file_ids:
         kwargs['file_ids'] = file_ids
-    client.beta.threads.messages.create(**kwargs)
+
+    message = client.beta.threads.messages.create(**kwargs)
+    logger.debug(message)
 
     generated_message = run_assistant(client, assistant_id, thread)
     return generated_message
@@ -123,6 +129,7 @@ def attach_file(client: openai.OpenAI, path, purpose='assistants'):
         message_file = client.files.create(
             file=fin, purpose=purpose
         )
+        logger.debug(message_file)
         return message_file
 
 
@@ -182,26 +189,33 @@ class AssistantShell(PrefixCmd):
             print(f'{path.suffix} file is not supported')
             return
 
-        message_file = attach_file(self.client, arg, purpose='assistants')
+        message_file = attach_file(self.client, arg, purpose='vision')
         print(f'Image is uploaded: {message_file}')
 
-        content = 'Here is a file you can refer.'
-        kwargs = {}
-        kwargs['attachments'] = [
-            {'file_id': message_file.id, 'tools': [{'type': 'file_search'}]},
+        # OpenAI playground assistant UI do this
+        content = [
+            {'type': 'image_file', 'image_file': {'file_id': message_file.id}}
         ]
-        send_message(self.client, self.assistant_id, self.thread, content, **kwargs)
+        result = send_message(self.client, self.assistant_id, self.thread, content)
         print('File is attached to the thread.')
+        print(result)
 
     def do_file(self, arg):
         '''Upload a file.\n/file <filepath>'''
 
         if arg.strip() == 'list':
             self.sub_do_file_list()
+            return
 
         if arg.startswith('delete'):
             file_id = arg.split(' ', 1)
             self.sub_do_file_delete(file_id)
+            return
+
+        if arg.startswith('status'):
+            file_id = arg.split(' ', 1)
+            self.sub_do_file_status(file_id)
+            return
 
         self.sub_do_file_upload(arg)
 
@@ -239,5 +253,10 @@ class AssistantShell(PrefixCmd):
             {'file_id': message_file.id, 'tools': [{'type': 'file_search'}]},
         ]
 
-        send_message(self.client, self.assistant_id, self.thread, content, **kwargs)
+        message = send_message(self.client, self.assistant_id, self.thread, content, **kwargs)
+        logger.debug(message)
         print('File is attached to the thread.')
+
+    def sub_do_file_status(self, file_id):
+        file_info = self.client.files.retrieve(file_id)
+        print(file_info)
