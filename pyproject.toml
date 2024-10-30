@@ -11,7 +11,8 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-  "openai"
+  "openai",
+  "tabulate"
 ]
 
 [project.urls]

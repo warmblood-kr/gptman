@@ -57,7 +57,7 @@ def create_assistant(client: openai.OpenAI, **kwargs):
 def list_assistants(client: openai.OpenAI):
     paginator = client.beta.assistants.list()
     for assistant in paginator:
-        yield (assistant.id, assistant.name)
+        yield assistant
 
 
 def describe_assistant(client: openai.OpenAI, asst_id: str):
