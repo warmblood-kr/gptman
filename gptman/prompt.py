@@ -23,6 +23,17 @@ def read_prompt_file(path):
         return parse_markdown_with_preamble(body)
 
 
+def write_prompt_file(path, data: dict):
+    temp_data = {**data}
+    instructions = temp_data.pop('instructions')
+    with open(path, 'w') as fout:
+        for k, v in temp_data.items():
+            fout.write(f'{k}: {v}\n')
+        fout.write('---\n')
+        fout.write(instructions)
+        fout.write('\n')
+
+
 def parse_markdown_with_preamble(text):
     lines = text.split('\n')
     if not lines[0].startswith('---'):

@@ -50,6 +50,10 @@ def update_instruction(client: openai.OpenAI, asst_id: str, **kwargs):
     return client.beta.assistants.update(asst_id, **kwargs)
 
 
+def create_assistant(client: openai.OpenAI, **kwargs):
+    return client.beta.assistants.create(**kwargs)
+
+
 def list_assistants(client: openai.OpenAI):
     paginator = client.beta.assistants.list()
     for assistant in paginator:

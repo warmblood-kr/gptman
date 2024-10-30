@@ -8,9 +8,13 @@ from gptman.main import (
     update_instruction,
     list_assistants,
     describe_assistant,
+    create_assistant,
     run_shell,
 )
-from gptman.prompt import read_prompt_file
+from gptman.prompt import (
+    read_prompt_file,
+    write_prompt_file,
+)
 
 
 def push(args):
@@ -26,7 +30,14 @@ def push(args):
         print(f"update {path} ---> {data['name']} ({data['id']})")
 
         asst_id = data.pop('id')
-        return update_instruction(client, asst_id, **data)
+
+        if asst_id:
+            return update_instruction(client, asst_id, **data)
+        else:
+            asst = create_assistant(client, **data)
+            data_with_id = {**data, 'id': asst.id}
+            write_prompt_file(path, data_with_id)
+
 
     paths = path if isinstance(path, list) else [path]
     results = [push_prompt(_path) for _path in paths]
