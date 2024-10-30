@@ -23,7 +23,7 @@ pip install gptman
 2. **Create a Configuration File**: Inside this directory, create a `gptman.toml` file to store your OpenAI API key.
 
    ```toml
-   [openai]
+   [gptman]
    api_key=<openai-api-key>
    ```
 
