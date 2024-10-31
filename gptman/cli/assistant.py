@@ -20,7 +20,8 @@ from gptman.prompt import (
 
 def push(args):
     path = args.path or [
-        filename for filename in os.listdir('.')
+        filename
+        for filename in os.listdir('.')
         if filename.endswith('.md')
     ]
 
@@ -42,6 +43,45 @@ def push(args):
     paths = path if isinstance(path, list) else [path]
     results = [push_prompt(_path) for _path in paths]
     return results
+
+
+def pull(args):
+    prompt_filenames = [
+        name
+        for name in os.listdir('.')
+        if name.endswith('.md')
+    ]
+
+    asst_id_to_filename = {
+        read_prompt_file(filename).get('id'): filename
+        for filename in prompt_filenames
+    }
+
+    def extract_data_from_assistant(asst):
+        return {
+            'id': asst.id,
+            'name': asst.name,
+            'model': asst.model,
+            'instructions': asst.instructions,
+        }
+
+    def update_or_create_prompt(data):
+        filename = asst_id_to_filename \
+            if data['id'] in asst_id_to_filename \
+            else '{}.md'.format(data['name'])
+
+        write_prompt_file(filename, data)
+
+    client = get_client(profile=args.profile)
+    assistants = list_assistants(client)
+    asst_data_list = [
+        extract_data_from_assistant(asst)
+        for asst in assistants
+    ]
+    return [
+        update_or_create_prompt(asst_data)
+        for asst_data in asst_data_list
+    ]
 
 
 def shell(args):
@@ -76,6 +116,9 @@ def setup_cli(assistant_subparsers):
     push_parser = assistant_subparsers.add_parser('push')
     push_parser.add_argument('path', nargs='?')
     push_parser.set_defaults(func=push)
+
+    pull_parser = assistant_subparsers.add_parser('pull')
+    pull_parser.set_defaults(func=pull)
 
     shell_parser = assistant_subparsers.add_parser('shell')
     shell_parser.set_defaults(func=shell)

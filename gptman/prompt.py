@@ -27,10 +27,12 @@ def write_prompt_file(path, data: dict):
     temp_data = {**data}
     instructions = temp_data.pop('instructions')
     with open(path, 'w') as fout:
+        fout.write('---\n')
         for k, v in temp_data.items():
             fout.write(f'{k}: {v}\n')
-        fout.write('---\n')
-        fout.write(instructions)
+        if temp_data:
+            fout.write('---\n')
+        fout.write(instructions or '')
         fout.write('\n')
 
 
