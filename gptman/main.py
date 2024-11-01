@@ -15,6 +15,11 @@ from gptman.prefixcmd import PrefixCmd
 logger = logging.getLogger('gptman')
 
 
+class NoSuchProfile(Exception):
+    def __init__(self, profile_name):
+        super().__init__(f"Profile '{profile_name}' not found")
+
+
 class Backend(Enum):
     openai = 'openai'
     azure = 'azure'
@@ -23,8 +28,11 @@ class Backend(Enum):
 def get_client(settings=None, profile=None):
     settings = settings or read_settings()
 
-    profile_settings = settings.get('profile', {}).get(profile, {}) if profile \
-        else settings.get('gptman', {})
+    try:
+        profile_settings = settings.get('profile', {})[profile] if profile \
+            else settings.get('gptman', {})
+    except KeyError:
+        raise NoSuchProfile(profile)
 
     backend = Backend[profile_settings.get('backend', 'openai')]
 
