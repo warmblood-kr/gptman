@@ -4,15 +4,16 @@ from pathlib import Path
 
 from tabulate import tabulate
 
-from gptman.main import (
-    get_client,
+from gptman.main import get_client
+from gptman.assistant import (
     update_instruction,
     list_assistants,
     describe_assistant,
     create_assistant,
-    run_shell,
 )
-from gptman.prompt import (
+from gptman.assistant.shell import run_shell
+
+from gptman.assistant.prompt import (
     read_prompt_file,
     write_prompt_file,
 )

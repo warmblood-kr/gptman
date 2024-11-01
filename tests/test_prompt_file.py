@@ -1,10 +1,12 @@
+import logging
 import pytest
+
 from gptman import exceptions as exc
-from gptman.prompt import (
-    read_settings,
+from gptman.assistant.prompt import (
     read_prompt_file,
     parse_markdown_with_preamble,
 )
+from gptman.main import read_settings
 
 
 def test_read_settings():

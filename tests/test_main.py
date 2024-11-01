@@ -1,6 +1,8 @@
 from unittest.mock import Mock
 from gptman.main import (
     get_client,
+)
+from gptman.assistant import (
     update_instruction,
     list_assistants,
 )
