@@ -66,9 +66,8 @@ def pull(args):
         }
 
     def update_or_create_prompt(data):
-        filename = asst_id_to_filename \
-            if data['id'] in asst_id_to_filename \
-            else '{}.md'.format(data['name'])
+        filename = asst_id_to_filename.get(data['id']) \
+            or '{}.md'.format(data['name'] or data['id'])
 
         write_prompt_file(filename, data)
 
