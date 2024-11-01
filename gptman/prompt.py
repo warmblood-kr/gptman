@@ -1,5 +1,6 @@
 import os
 import tomllib
+import logging
 from gptman.exceptions import PreambleNotFound
 
 
@@ -13,6 +14,7 @@ def read_settings(candidates=None):
         if not os.path.isfile(path):
             continue
 
+        logging.getLogger(__name__).info('Found settings file at %s', path)
         with open(path, "rb") as f:
             return tomllib.load(f)
 

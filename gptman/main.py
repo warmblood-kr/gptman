@@ -1,3 +1,4 @@
+import os
 import time
 import openai
 import datetime
@@ -30,8 +31,15 @@ class Backend(Enum):
 def get_client(settings=None, profile=None):
     settings = settings or read_settings()
 
+    _profile = profile if profile else os.getenv('GPTMAN_PROFILE') or None
+
+    if _profile:
+        logger.info('Use profile [profile.%s]', _profile)
+    else:
+        logger.info('Use default profile [gptman]')
+
     try:
-        profile_settings = settings.get('profile', {})[profile] if profile \
+        profile_settings = settings.get('profile', {})[_profile] if _profile \
             else settings['gptman']
     except KeyError as ex:
         key = ex.args[0]
