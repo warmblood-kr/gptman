@@ -17,7 +17,9 @@ logger = logging.getLogger('gptman')
 
 class NoSuchProfile(Exception):
     def __init__(self, profile_name):
-        super().__init__(f"Profile '{profile_name}' not found")
+        msg = f"Profile section [profile.{profile_name}] not found" if profile_name \
+            else 'Default [gptman] section is not found'
+        super().__init__(msg)
 
 
 class Backend(Enum):
@@ -30,9 +32,11 @@ def get_client(settings=None, profile=None):
 
     try:
         profile_settings = settings.get('profile', {})[profile] if profile \
-            else settings.get('gptman', {})
-    except KeyError:
-        raise NoSuchProfile(profile)
+            else settings['gptman']
+    except KeyError as ex:
+        key = ex.args[0]
+        profile_name = key if key != 'gptman' else None
+        raise NoSuchProfile(profile_name)
 
     backend = Backend[profile_settings.get('backend', 'openai')]
 
