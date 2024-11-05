@@ -30,9 +30,9 @@ def push(args):
 
     def push_prompt(path):
         data = read_prompt_file(path)
-        print(f"update {path} ---> {data['name']} ({data['id']})")
+        print(f"update {path} ---> {data['name']} ({data.get('id')})")
 
-        asst_id = data.pop('id')
+        asst_id = data.pop('id', None)
 
         if asst_id:
             return update_instruction(client, asst_id, **data)
