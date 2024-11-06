@@ -85,7 +85,7 @@ def pull(args):
 
 
 def shell(args):
-    asst_id = args.id or read_prompt_file(args.path)['id']
+    asst_id = args.id or read_prompt_file(args.path)['id'] if args.path else None
 
     client = get_client(profile=args.profile)
     run_shell(client, asst_id)
@@ -122,9 +122,9 @@ def setup_cli(assistant_subparsers):
 
     shell_parser = assistant_subparsers.add_parser('shell')
     shell_parser.set_defaults(func=shell)
-    group = shell_parser.add_mutually_exclusive_group(required=True)
+    group = shell_parser.add_mutually_exclusive_group(required=False)
     group.add_argument('path', nargs='?', type=Path)
-    group.add_argument('--id')
+    group.add_argument('--id', nargs='*')
 
     list_parser = assistant_subparsers.add_parser('list')
     list_parser.add_argument('-l', '--long', action='store_true')

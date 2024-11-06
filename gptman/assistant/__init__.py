@@ -3,6 +3,7 @@ import logging
 
 import openai
 
+from typing import List, Optional
 from gptman import exceptions as exc
 
 

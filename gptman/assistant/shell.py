@@ -6,6 +6,8 @@ import openai
 from pathlib import Path
 from typing import Optional
 
+from openai.resources.beta.threads.threads import Thread
+
 from gptman.contextmanagers import with_history
 from gptman.prefixcmd import PrefixCmd
 from gptman.assistant import (
@@ -22,8 +24,7 @@ logger = logging.getLogger('gptman')
 def run_shell(client: openai.OpenAI, asst_id: str):
     with with_history():
         try:
-            thread = client.beta.threads.create()
-            shell = AssistantShell(client, asst_id, thread)
+            shell = AssistantShell(client, asst_id)
             shell.cmdloop()
         except KeyboardInterrupt:
             return
@@ -44,25 +45,61 @@ class AssistantShell(PrefixCmd):
     prompt = 'Assistant> '
     client: Optional[openai.OpenAI]
     assistant_id: Optional[str]
-    thread: Optional[openai.resources.beta.threads.threads.Thread]
+    thread: Optional[Thread]
 
-    def __init__(self, client: openai.OpenAI, assistant_id: str,
-                 thread: openai.resources.beta.threads.threads.Thread,
-                 **kwargs):
+    def __init__(self, client: openai.OpenAI, assistant_id: Optional[str], **kwargs):
         self.client = client
         self.assistant_id = assistant_id
-        self.thread = thread
+        self.renew_pipeline = False
+        self.debug_mode = False
+        self.new_thread()
+
         super().__init__(**kwargs)
 
-    def default(self, line):
-        self.client.beta.threads.messages.create(
-            thread_id=self.thread.id,
-            role='user',
-            content=line,
-        )
+    def new_thread(self):
+        self.thread = self.client.beta.threads.create()
 
-        generated_message = run_assistant(self.client, self.assistant_id, self.thread)
-        print(generated_message)
+    def default(self, line):
+        asst_ids = self.assistant_id if isinstance(self.assistant_id, (list, tuple)) else [self.assistant_id]
+
+        for asst_id in asst_ids:
+            if self.do_set_renew:
+                self.new_thread()
+            self.client.beta.threads.messages.create(
+                thread_id=self.thread.id,
+                role='user',
+                content=line,
+            )
+
+            print(f'Querying thread to assistant {asst_id}...')
+            line = run_assistant(self.client, asst_id, self.thread)
+            if self.debug_mode:
+                print('--- START DEBUG MESSAGE ---')
+                print(line)
+                print('---   END DEBUG MESSAGE ---')
+        print(line)
+
+    def do_set_debug(self, arg):
+        'Whether renew or keep during pipeline'
+        self.debug_mode = arg in ['true', 'True', 'yes', 'y', 't']
+
+    def do_set_renew(self, arg):
+        'Whether renew or keep during pipeline'
+        self.renew_pipeline = arg in ['true', 'True', 'yes', 'y', 't']
+
+    def do_assistant(self, arg):
+        'Set assistant ID. It can be ID list to use prompt chaining.'
+        if arg:
+            self.assistant_id = [s.strip() for s in arg.split()]
+
+    def do_load(self, arg):
+        'Load script text and query it to assistant'
+        path = Path(arg)
+        if not path.exists():
+            print(f'File {arg} is not exists')
+            return
+        content = path.read_text()
+        self.default(content)
 
     def do_quit(self, arg):
         'Quit shell'
