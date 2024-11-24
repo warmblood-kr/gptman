@@ -53,6 +53,7 @@ class AssistantShell(PrefixCmd):
         self.renew_pipeline = False
         self.debug_mode = False
         self.new_thread()
+        self.log_path = None
 
         super().__init__(**kwargs)
 
@@ -77,15 +78,23 @@ class AssistantShell(PrefixCmd):
                 print('--- START DEBUG MESSAGE ---')
                 print(line)
                 print('---   END DEBUG MESSAGE ---')
+
+        if self.log_path:
+            with open(self.log_path, 'a') as fout:
+                fout.write(line)
         print(line)
 
-    def do_set_debug(self, arg):
-        'Whether renew or keep during pipeline'
+    def do_debug(self, arg):
+        'Print debug message'
         self.debug_mode = arg in ['true', 'True', 'yes', 'y', 't']
 
-    def do_set_renew(self, arg):
+    def do_renew(self, arg):
         'Whether renew or keep during pipeline'
         self.renew_pipeline = arg in ['true', 'True', 'yes', 'y', 't']
+
+    def do_log(self, arg):
+        'Set log file path'
+        self.log_path = arg
 
     def do_assistant(self, arg):
         'Set assistant ID. It can be ID list to use prompt chaining.'
